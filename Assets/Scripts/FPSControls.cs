@@ -34,10 +34,16 @@ public class FPSControls : MonoBehaviour
     private CharacterController characterController;
     void Start()
     {
-        characterController=GetComponent<CharacterController>();
+        Cursor.lockState = CursorLockMode.Locked;
+        characterController = GetComponent<CharacterController>();
         audioSrc = GetComponent<AudioSource>();
         line = GetComponent<LineRenderer>();
-        Cursor.lockState = CursorLockMode.Locked;
+        LevelController.Instance.OnLevelEnd.AddListener(LevelEnd);
+    }
+    private void LevelEnd()
+    {
+        canMove = false;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     void Update()
@@ -45,10 +51,11 @@ public class FPSControls : MonoBehaviour
         if (canMove)
         {
             Move();
+            RotateCam();
         }
-        RotateCam();
 
-        if(Input.GetButtonDown("Fire1"))
+
+        if(Input.GetButtonDown("Fire1") && canMove)
         {
             RaycastHit hit = RaycastDetect();
             Shoot(hit);
@@ -136,6 +143,13 @@ public class FPSControls : MonoBehaviour
             float curvePercent = lineWidthCurve.Evaluate(percent);
             line.widthMultiplier = curvePercent;
             yield return null;
+        }
+    }
+    private void OnTriggerEnter(Collider col)
+    {
+        if (col.gameObject.CompareTag("Respawn"))
+        {
+            LevelController.Instance.Restartlevel();
         }
     }
 }
